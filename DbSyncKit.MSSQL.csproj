@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DbSyncKit.DB\DbSyncKit.DB.csproj" />
+    <ProjectReference Include="..\DbSyncKit.Templates.MSSQL\DbSyncKit.Templates.MSSQL.csproj" />
     <ProjectReference Include="..\DbSyncKit.Templates\DbSyncKit.Templates.csproj" />
   </ItemGroup>
 
