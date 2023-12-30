@@ -37,9 +37,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DbSyncKit.DB\DbSyncKit.DB.csproj" />
-    <ProjectReference Include="..\DbSyncKit.Templates.MSSQL\DbSyncKit.Templates.MSSQL.csproj" />
-    <ProjectReference Include="..\DbSyncKit.Templates\DbSyncKit.Templates.csproj" />
+    <ProjectReference Include="..\..\DbSyncKit.DB\src\DbSyncKit.DB.csproj" />
+    <ProjectReference Include="..\..\DbSyncKit.Templates.MSSQL\src\DbSyncKit.Templates.MSSQL.csproj" />
+    <ProjectReference Include="..\..\DbSyncKit.Templates\src\DbSyncKit.Templates.csproj" />
   </ItemGroup>
 
 </Project>
