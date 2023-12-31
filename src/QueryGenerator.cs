@@ -191,8 +191,7 @@ namespace DbSyncKit.MSSQL
         public List<string> GetCondition<T>(T entity, List<string> keyColumns) where T : IDataContractComparer
         {
             Type entityType = typeof(T);
-            PropertyInfo[] keyProperties = entityType.GetProperties().
-                Where(p => keyColumns.Contains(p.Name)).ToArray();
+            PropertyInfo[] keyProperties = GetKeyProperties<T>();
 
             return keyProperties.Select(p => $"{EscapeColumn(p.Name)} = '{EscapeValue(p.GetValue(entity))}'").ToList();
         }
