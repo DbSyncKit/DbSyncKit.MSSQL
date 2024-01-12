@@ -1,7 +1,7 @@
 ﻿using DbSyncKit.DB.Enum;
 using DbSyncKit.DB.Interface;
+using Microsoft.Data.SqlClient;
 using System.Data;
-using System.Data.SqlClient;
 
 namespace DbSyncKit.MSSQL
 {
@@ -43,16 +43,18 @@ namespace DbSyncKit.MSSQL
         /// </summary>
         /// <param name="server">The server address.</param>
         /// <param name="database">The database name.</param>
+        /// <param name="initialCatalog">The initial catalog or database name.</param>
         /// <param name="integratedSecurity">Indicates whether to use integrated security.</param>
         /// <param name="userID">The user ID for SQL authentication.</param>
         /// <param name="password">The password for SQL authentication.</param>
         /// <param name="useServerAddress">Indicates whether to use the server address.</param>
-        public Connection(string server, string? database, bool integratedSecurity, string? userID, string? password, bool useServerAddress)
+        public Connection(string server, string? database, string? initialCatalog, bool integratedSecurity, string? userID, string? password, bool useServerAddress)
         {
             UseServerAddress = useServerAddress;
             Server = server;
             Database = database;
             IntegratedSecurity = integratedSecurity;
+            InitialCatalog = initialCatalog;
             UserID = userID;
             Password = password;
         }
@@ -120,7 +122,7 @@ namespace DbSyncKit.MSSQL
             try
             {
                 connectionString = GetConnectionString();
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                using (SqlConnection sqlConnection = new(connectionString))
                 {
                     try
                     {
@@ -146,39 +148,58 @@ namespace DbSyncKit.MSSQL
         /// <returns>The connection string.</returns>
         public string GetConnectionString()
         {
-            string connectionString = string.Empty;
+            var connectionStringBuilder = new SqlConnectionStringBuilder();
 
             if (UseServerAddress)
             {
-                if (Server == null) throw new Exception($"Server cannot be null when connecting through server address.");
-                connectionString += $" Server={Server}; ";
+                if (Server == null)
+                {
+                    throw new Exception("Server cannot be null when connecting through server address.");
+                }
+
+                connectionStringBuilder.DataSource = Server;
 
                 if (Database != null)
-                    connectionString += $" Database={Database}; ";
+                {
+                    connectionStringBuilder.InitialCatalog = Database;
+                }
             }
             else
             {
-                if (DataSource == null) throw new Exception($"DataSource cannot be null when connecting through IP address.");
-                connectionString += $" Data Source={DataSource}; ";
+                if (DataSource == null)
+                {
+                    throw new Exception("DataSource cannot be null");
+                }
+
+                connectionStringBuilder.DataSource = DataSource;
 
                 if (InitialCatalog != null)
-                    connectionString += $" Initial Catalog={InitialCatalog}; ";
+                {
+                    connectionStringBuilder.InitialCatalog = InitialCatalog;
+                }
             }
 
-            connectionString += $" Integrated Security={IntegratedSecurity.ToString()}; ";
+            connectionStringBuilder.IntegratedSecurity = IntegratedSecurity;
 
-            if (IntegratedSecurity == false)
+            if (!IntegratedSecurity)
             {
-                if (UserID == null) throw new Exception("UserID cannot be null when logging in using SQL Authentication.");
-                connectionString += $" User ID={UserID}; ";
+                if (UserID == null)
+                {
+                    throw new Exception("UserID cannot be null when logging in using SQL Authentication.");
+                }
 
-                if (Password == null) throw new Exception("Password cannot be null when logging in using SQL Authentication.");
-                connectionString += $" Password={Password}; ";
+                connectionStringBuilder.UserID = UserID;
+
+                if (Password == null)
+                {
+                    throw new Exception("Password cannot be null when logging in using SQL Authentication.");
+                }
+
+                connectionStringBuilder.Password = Password;
             }
 
-            return connectionString.Trim();
+            return connectionStringBuilder.ConnectionString;
         }
-
         #endregion
 
         #region Static Method
@@ -191,14 +212,14 @@ namespace DbSyncKit.MSSQL
         /// <returns>A DataSet containing the result of the query.</returns>
         public DataSet ExecuteQuery(string query, string tableName)
         {
-            using (SqlConnection sqlConnection = new SqlConnection(this.GetConnectionString()))
+            using (SqlConnection sqlConnection = new(this.GetConnectionString()))
             {
                 try
                 {
                     sqlConnection.Open();
 
-                    using (SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(query, sqlConnection))
-                    using (DataSet schema = new DataSet())
+                    using (SqlDataAdapter sqlDataAdapter = new(query, sqlConnection))
+                    using (DataSet schema = new())
                     {
                         sqlDataAdapter.Fill(schema, tableName);
 
