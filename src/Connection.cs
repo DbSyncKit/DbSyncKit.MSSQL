@@ -21,42 +21,26 @@ namespace DbSyncKit.MSSQL
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Connection"/> class with the specified connection parameters.
+        /// Initializes a new instance of the <see cref="Connection"/> class with the specified parameters.
         /// </summary>
-        /// <param name="dataSource">The data source or IP address.</param>
-        /// <param name="initialCatalog">The initial catalog or database name.</param>
-        /// <param name="integratedSecurity">Indicates whether to use integrated security.</param>
-        /// <param name="userID">The user ID for SQL authentication.</param>
-        /// <param name="password">The password for SQL authentication.</param>
-        public Connection(string dataSource, string? initialCatalog, bool integratedSecurity, string? userID = "", string? password = "")
+        /// <param name="serverAddress">The address of the server.</param>
+        /// <param name="useSQLAuthentication">Indicates whether to use SQL authentication.</param>
+        /// <param name="databaseName">The name of the database.</param>
+        /// <param name="sqlUsername">The username for SQL authentication.</param>
+        /// <param name="sqlPassword">The password for SQL authentication.</param>
+        public Connection(string serverAddress, bool useSQLAuthentication, string? databaseName = null, string? sqlUsername = null, string? sqlPassword = null)
         {
-            DataSource = dataSource;
-            InitialCatalog = initialCatalog;
-            IntegratedSecurity = integratedSecurity;
-            UserID = userID;
-            Password = password;
-        }
+            Server = serverAddress;
+            UseSQLAuthentication = useSQLAuthentication;
 
+            if (databaseName != null)
+                DatabaseName = databaseName;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Connection"/> class with the specified connection parameters.
-        /// </summary>
-        /// <param name="server">The server address.</param>
-        /// <param name="database">The database name.</param>
-        /// <param name="initialCatalog">The initial catalog or database name.</param>
-        /// <param name="integratedSecurity">Indicates whether to use integrated security.</param>
-        /// <param name="userID">The user ID for SQL authentication.</param>
-        /// <param name="password">The password for SQL authentication.</param>
-        /// <param name="useServerAddress">Indicates whether to use the server address.</param>
-        public Connection(string server, string? database, string? initialCatalog, bool integratedSecurity, string? userID, string? password, bool useServerAddress)
-        {
-            UseServerAddress = useServerAddress;
-            Server = server;
-            Database = database;
-            IntegratedSecurity = integratedSecurity;
-            InitialCatalog = initialCatalog;
-            UserID = userID;
-            Password = password;
+            if (useSQLAuthentication)
+            {
+                SQLUsername = sqlUsername;
+                SQLPassword = sqlPassword;
+            }
         }
 
         #endregion
@@ -64,44 +48,29 @@ namespace DbSyncKit.MSSQL
 
         #region Properties
         /// <summary>
-        /// Gets or sets a value indicating whether to use the server address.
+        /// Gets or sets the address of the server.
         /// </summary>
-        public bool UseServerAddress { get; set; }
+        private string Server { get; set; }
 
         /// <summary>
-        /// Gets or sets the data source or IP address.
+        /// Gets or sets a value indicating whether to use SQL authentication.
         /// </summary>
-        public string? DataSource { get; set; }
+        private bool UseSQLAuthentication { get; set; }
 
         /// <summary>
-        /// Gets or sets the server address.
+        /// Gets or sets the username for SQL authentication.
         /// </summary>
-        public string? Server { get; set; }
-
-        /// <summary>
-        /// Gets or sets the database name.
-        /// </summary>
-        public string? Database { get; set; }
-
-        /// <summary>
-        /// Gets or sets the initial catalog or database name.
-        /// </summary>
-        public string? InitialCatalog { get; set; }
-
-        /// <summary>
-        /// Gets or sets the user ID for SQL authentication.
-        /// </summary>
-        public string? UserID { get; set; }
+        private string? SQLUsername { get; set; }
 
         /// <summary>
         /// Gets or sets the password for SQL authentication.
         /// </summary>
-        public string? Password { get; set; }
+        private string? SQLPassword { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to use integrated security.
+        /// Gets or sets the name of the database.
         /// </summary>
-        public bool IntegratedSecurity { get; set; }
+        private string? DatabaseName { get; set; }
 
         /// <summary>
         /// Gets the database provider type, which is MSSQL for this class.
@@ -148,58 +117,24 @@ namespace DbSyncKit.MSSQL
         /// <returns>The connection string.</returns>
         public string GetConnectionString()
         {
-            var connectionStringBuilder = new SqlConnectionStringBuilder();
+            SqlConnectionStringBuilder sqlConnectionStringBuilder = new();
+            sqlConnectionStringBuilder.DataSource = Server;
+            sqlConnectionStringBuilder.IntegratedSecurity = !UseSQLAuthentication;
 
-            if (UseServerAddress)
+            if (DatabaseName != null)
+                sqlConnectionStringBuilder.InitialCatalog = DatabaseName;
+
+            if (UseSQLAuthentication)
             {
-                if (Server == null)
-                {
-                    throw new Exception("Server cannot be null when connecting through server address.");
-                }
-
-                connectionStringBuilder.DataSource = Server;
-
-                if (Database != null)
-                {
-                    connectionStringBuilder.InitialCatalog = Database;
-                }
-            }
-            else
-            {
-                if (DataSource == null)
-                {
-                    throw new Exception("DataSource cannot be null");
-                }
-
-                connectionStringBuilder.DataSource = DataSource;
-
-                if (InitialCatalog != null)
-                {
-                    connectionStringBuilder.InitialCatalog = InitialCatalog;
-                }
+                sqlConnectionStringBuilder.UserID = SQLUsername;
+                sqlConnectionStringBuilder.Password = SQLPassword;
             }
 
-            connectionStringBuilder.IntegratedSecurity = IntegratedSecurity;
+            sqlConnectionStringBuilder.TrustServerCertificate = true;
 
-            if (!IntegratedSecurity)
-            {
-                if (UserID == null)
-                {
-                    throw new Exception("UserID cannot be null when logging in using SQL Authentication.");
-                }
-
-                connectionStringBuilder.UserID = UserID;
-
-                if (Password == null)
-                {
-                    throw new Exception("Password cannot be null when logging in using SQL Authentication.");
-                }
-
-                connectionStringBuilder.Password = Password;
-            }
-
-            return connectionStringBuilder.ConnectionString;
+            return sqlConnectionStringBuilder.ConnectionString;
         }
+
         #endregion
 
         #region Static Method

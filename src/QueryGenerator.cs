@@ -1,5 +1,5 @@
 ﻿using DbSyncKit.DB.Helper;
-using DbSyncKit.DB.Interface;
+using DbSyncKit.Templates.Interface;
 using DbSyncKit.Templates.MSSQL;
 using Fluid;
 using System.Reflection;
@@ -44,7 +44,7 @@ namespace DbSyncKit.MSSQL
         /// <param name="schemaName">Optional schema name, default is 'dbo'.</param>
         /// <returns>Select Query in string.</returns>
         /// <exception cref="ArgumentException">Thrown when table name or columns are null or empty.</exception>
-        public string GenerateSelectQuery<T>(string tableName, List<string> listOfColumns, string schemaName) where T : IDataContract
+        public string GenerateSelectQuery<T>(string tableName, List<string> listOfColumns, string schemaName)
         {
             if (string.IsNullOrEmpty(tableName) || listOfColumns == null || listOfColumns.Count == 0)
             {
@@ -79,7 +79,7 @@ namespace DbSyncKit.MSSQL
         /// <param name="excludedColumns">List of excluded columns.</param>
         /// <param name="editedProperties">Dictionary of edited properties.</param>
         /// <returns>Update Query in string.</returns>
-        public string GenerateUpdateQuery<T>(T DataContract, List<string> keyColumns, List<string> excludedColumns, (string propName, object propValue)[] editedProperties) where T : IDataContract
+        public string GenerateUpdateQuery<T>(T DataContract, List<string> keyColumns, List<string> excludedColumns, (string propName, object propValue)[] editedProperties)
         {
             string tableName = GetTableName<T>();
             string schemaName = GetTableSchema<T>() ?? DEFAULT_SCHEMA_NAME;
@@ -102,7 +102,7 @@ namespace DbSyncKit.MSSQL
         /// <param name="entity">The entity to be deleted.</param>
         /// <param name="keyColumns">List of key columns.</param>
         /// <returns>Delete Query in string.</returns>
-        public string GenerateDeleteQuery<T>(T entity, List<string> keyColumns) where T : IDataContract
+        public string GenerateDeleteQuery<T>(T entity, List<string> keyColumns)
         {
             string tableName = GetTableName<T>();
             string schemaName = GetTableSchema<T>() ?? DEFAULT_SCHEMA_NAME;
@@ -124,7 +124,7 @@ namespace DbSyncKit.MSSQL
         /// <param name="keyColumns">List of key columns.</param>
         /// <param name="excludedColumns">List of excluded columns.</param>
         /// <returns>Insert Query in string.</returns>
-        public string GenerateInsertQuery<T>(T entity, List<string> keyColumns, List<string> excludedColumns) where T : IDataContract
+        public string GenerateInsertQuery<T>(T entity, List<string> keyColumns, List<string> excludedColumns)
         {
             string tableName = GetTableName<T>();
             string schemaName = GetTableSchema<T>() ?? DEFAULT_SCHEMA_NAME;
@@ -184,11 +184,10 @@ namespace DbSyncKit.MSSQL
         /// <summary>
         /// Generates a SQL WHERE clause based on the specified entity and key columns.
         /// </summary>
-        /// <typeparam name="T">The type of the entity that implements IDataContract.</typeparam>
         /// <param name="entity">The entity for which the condition is generated.</param>
         /// <param name="keyColumns">The list of key columns used to create the condition.</param>
         /// <returns>A string representing the SQL WHERE clause based on the key columns of the entity.</returns>
-        public List<string> GetCondition<T>(T entity, List<string> keyColumns) where T : IDataContract
+        public List<string> GetCondition<T>(T entity, List<string> keyColumns)
         {
             Type entityType = typeof(T);
             PropertyInfo[] keyProperties = GetKeyProperties<T>();
