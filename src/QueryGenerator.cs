@@ -1,5 +1,5 @@
 ﻿using DbSyncKit.DB.Helper;
-using DbSyncKit.DB.Interface;
+using DbSyncKit.Templates.Interface;
 using DbSyncKit.Templates.MSSQL;
 using Fluid;
 using System.Reflection;
