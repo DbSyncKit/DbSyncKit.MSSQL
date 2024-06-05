@@ -50,7 +50,7 @@ namespace DbSyncKit.MSSQL
         /// <summary>
         /// Gets or sets the address of the server.
         /// </summary>
-        private string Server { get; set; }
+        private string Server { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets a value indicating whether to use SQL authentication.
